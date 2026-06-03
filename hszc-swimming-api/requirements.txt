@@ -21,3 +21,7 @@ Pillow>=10.0.0           # 图片处理
 # 开发环境
 black>=23.0.0
 flake8>=6.0.0
+
+# 生产环境
+gunicorn>=21.0.0
+django-filter>=23.0
