@@ -1,5 +1,5 @@
 """
-Django settings for 红衫游泳俱乐部信息管理系统
+Django settings for 北京红衫众成游泳俱乐部管理信息系统
 """
 import os
 from pathlib import Path
@@ -131,7 +131,7 @@ CORS_ALLOWED_ORIGINS = []
 
 # API 文档
 SPECTACULAR_SETTINGS = {
-    'TITLE': '红衫游泳俱乐部信息管理系统 API',
+    'TITLE': '北京红衫众成游泳俱乐部管理信息系统 API',
     'DESCRIPTION': '会员管理、比赛管理、训练管理、消息中心等',
     'VERSION': '1.0.0',
     'SERVE_INCLUDE_SCHEMA': False,

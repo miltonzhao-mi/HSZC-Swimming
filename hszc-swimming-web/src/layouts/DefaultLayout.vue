@@ -13,8 +13,8 @@
       class="layout-sider"
     >
       <div class="logo" :class="{ collapsed }">
-        <img v-if="!collapsed" src="@/assets/images/logo.png" alt="logo" class="logo-img" />
-        <span v-if="!collapsed" class="logo-text">红衫游泳</span>
+        <img v-if="!collapsed" src="@/assets/logo.jpg" alt="logo" class="logo-img" />
+        <span v-if="!collapsed" class="logo-text">北京红衫</span>
       </div>
       <n-menu
         v-model:value="activeKey"
@@ -143,7 +143,7 @@ function handleUserMenuSelect(key) {
 .logo-text {
   font-size: 16px;
   font-weight: 600;
-  color: #1890ff;
+  color: #c41e3a;
 }
 
 .layout-header {

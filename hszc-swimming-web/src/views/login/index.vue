@@ -2,8 +2,9 @@
   <div class="login-container">
     <div class="login-box">
       <div class="login-header">
-        <h2>红衫游泳俱乐部</h2>
-        <p>信息管理系统</p>
+        <img src="@/assets/logo.jpg" alt="logo" class="login-logo" />
+        <h2>北京红衫众成游泳俱乐部</h2>
+        <p>管理信息系统</p>
       </div>
       <n-form
         ref="formRef"
@@ -102,8 +103,13 @@ async function handleLogin() {
 
 .login-header h2 {
   font-size: 24px;
-  color: #1890ff;
+  color: #c41e3a;
   margin: 0 0 8px 0;
+}
+
+.login-logo {
+  height: 60px;
+  margin-bottom: 16px;
 }
 
 .login-header p {
