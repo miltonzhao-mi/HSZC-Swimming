@@ -4,6 +4,7 @@ FROM python:3.12-slim
 ENV PYTHONDONTWRITEBYTECODE=1
 ENV PYTHONUNBUFFERED=1
 ENV DJANGO_ENV=prod
+ENV DJANGO_SETTINGS_MODULE=config.settings.prod
 
 # 设置工作目录
 WORKDIR /app
@@ -13,6 +14,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     gcc \
     default-libmysqlclient-dev \
     pkg-config \
+    curl \
     && rm -rf /var/lib/apt/lists/*
 
 # 复制依赖文件
@@ -21,14 +23,17 @@ COPY requirements.txt .
 # 安装 Python 依赖
 RUN pip install --no-cache-dir -r requirements.txt
 
-# 复制项目代码
+# 复制项目代码（排除不需要的文件）
 COPY . .
 
+# 创建 media 目录
+RUN mkdir -p /app/media
+
 # 收集静态文件
-RUN python manage.py collectstatic --noinput
+RUN python manage.py collectstatic --noinput --settings=config.settings.prod
 
 # 暴露端口
 EXPOSE 8000
 
 # 启动命令
-CMD ["gunicorn", "--bind", "0.0.0.0:8000", "--workers", "4", "--threads", "2", "config.wsgi:application"]
+CMD ["gunicorn", "--bind", "0.0.0.0:8000", "--workers", "4", "--threads", "2", "--timeout", "120", "config.wsgi:application"]
