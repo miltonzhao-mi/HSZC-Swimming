@@ -1,4 +1,5 @@
 """Competitions 视图"""
+from datetime import datetime
 from rest_framework import viewsets, status
 from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
@@ -171,6 +172,135 @@ class ScoreViewSet(viewsets.ModelViewSet):
         if scores.exists():
             return ApiResponse.success(ScoreSerializer(scores.first()).data)
         return ApiResponse.success(None, '无历史成绩')
+
+    @action(detail=False, methods=['post'])
+    def import_scores(self, request):
+        """批量导入比赛成绩"""
+        from utils.excel import ExcelHelper
+        file = request.FILES.get('file')
+        competition_id = request.data.get('competition_id')
+
+        if not file:
+            return ApiResponse.error('请上传文件')
+
+        try:
+            excel = ExcelHelper(file)
+            data = excel.read_data()
+
+            success_count = 0
+            error_list = []
+
+            for idx, row in enumerate(data, 1):
+                try:
+                    member_name = row.get('会员姓名', '').strip()
+                    event_item = row.get('泳姿', '').strip()
+                    distance = row.get('距离', '').strip()
+                    score_time = row.get('成绩', None)
+                    gender = row.get('性别', '').strip()
+                    age_group = row.get('组别', '').strip()
+                    rank = row.get('名次', None)
+                    points = row.get('积分', 0)
+                    activity_name = row.get('活动名称', '').strip()
+                    activity_date = row.get('活动日期', None)
+                    remarks = row.get('备注', '').strip()
+
+                    if not member_name or not event_item:
+                        error_list.append(f'第{idx}行: 会员姓名和泳姿不能为空')
+                        continue
+
+                    # 解析成绩（mm:ss.00格式）
+                    if score_time:
+                        score_seconds = ExcelHelper.parse_time_format(score_time)
+                    else:
+                        error_list.append(f'第{idx}行: 成绩不能为空')
+                        continue
+
+                    # 查找或创建比赛
+                    competition = None
+                    if competition_id:
+                        try:
+                            competition = Competition.objects.get(id=competition_id)
+                        except Competition.DoesNotExist:
+                            pass
+
+                    if not competition and activity_name:
+                        # 尝试查找或创建比赛
+                        from datetime import date
+                        comp_date = date.today()
+                        if activity_date:
+                            if hasattr(activity_date, 'date'):
+                                comp_date = activity_date.date()
+                            else:
+                                comp_date = activity_date
+
+                        competition, created = Competition.objects.get_or_create(
+                            name=activity_name,
+                            defaults={
+                                'start_date': comp_date,
+                                'end_date': comp_date,
+                                'sign_up_deadline': datetime.now(),
+                                'status': 'finished'
+                            }
+                        )
+
+                    if not competition:
+                        error_list.append(f'第{idx}行: 未指定比赛且无法创建')
+                        continue
+
+                    # 查找会员（通过姓名匹配）
+                    from apps.members.models import Member
+                    member = None
+                    # 尝试通过姓名查找（姓 名格式）
+                    name_parts = member_name.split()
+                    if len(name_parts) >= 2:
+                        member = Member.objects.filter(
+                            surname=name_parts[0],
+                            given_name=name_parts[1] if len(name_parts) > 1 else ''
+                        ).first()
+                    if not member:
+                        # 尝试模糊匹配
+                        member = Member.objects.filter(
+                            Q(surname__icontains=member_name) | Q(given_name__icontains=member_name)
+                        ).first()
+
+                    if not member:
+                        error_list.append(f'第{idx}行: 未找到会员 {member_name}')
+                        continue
+
+                    # 创建或更新报名
+                    signup, _ = SignUp.objects.get_or_create(
+                        competition=competition,
+                        member=member,
+                        event_item=event_item,
+                        distance=distance,
+                        defaults={'register_by': 'pc'}
+                    )
+
+                    # 创建或更新成绩
+                    Score.objects.update_or_create(
+                        signup=signup,
+                        defaults={
+                            'score_time': score_seconds,
+                            'rank': int(rank) if rank else None,
+                            'points': int(points) if points else 0,
+                            'submit_by': self.request.user,
+                            'remarks': remarks
+                        }
+                    )
+
+                    success_count += 1
+
+                except Exception as e:
+                    error_list.append(f'第{idx}行: {str(e)}')
+
+            return ApiResponse.success({
+                'success_count': success_count,
+                'error_count': len(error_list),
+                'errors': error_list[:20]
+            }, '导入完成')
+
+        except Exception as e:
+            return ApiResponse.error(f'导入失败: {str(e)}')
 
 
 class ScoreFileViewSet(viewsets.ModelViewSet):
