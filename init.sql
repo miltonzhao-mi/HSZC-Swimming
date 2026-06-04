@@ -525,3 +525,36 @@ INSERT INTO standards_swimming (gender, pool_length, stroke, distance, level, qu
 ('female', 50, 'medley', 400, 'level_2', 298.65, '2025'),
 ('female', 50, 'medley', 400, 'level_3', 308.65, '2025')
 ON DUPLICATE KEY UPDATE qualifying_time=VALUES(qualifying_time);
+
+-- 创建会员画像表
+CREATE TABLE IF NOT EXISTS profiles_member_profile (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    member_id BIGINT NOT NULL UNIQUE COMMENT '会员ID',
+    total_activities INT DEFAULT 0 COMMENT '累计活动次数',
+    total_signups INT DEFAULT 0 COMMENT '累计报名次数',
+    total_scores INT DEFAULT 0 COMMENT '累计有成绩次数',
+    total_training INT DEFAULT 0 COMMENT '累计参训次数',
+    total_points INT DEFAULT 0 COMMENT '累计积分',
+    year_signups INT DEFAULT 0 COMMENT '年度报名',
+    year_scores INT DEFAULT 0 COMMENT '年度有成绩',
+    year_training INT DEFAULT 0 COMMENT '年度参训',
+    year_points INT DEFAULT 0 COMMENT '年度积分',
+    personal_records JSON COMMENT '个人最佳成绩',
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    UNIQUE KEY uk_member (member_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='会员画像';
+
+-- 创建成绩历史记录表
+CREATE TABLE IF NOT EXISTS profiles_performance_record (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    member_id BIGINT NOT NULL COMMENT '会员ID',
+    stroke VARCHAR(20) NOT NULL COMMENT '泳姿',
+    distance INT NOT NULL COMMENT '距离(米)',
+    score_time DECIMAL(8,2) NOT NULL COMMENT '成绩(秒)',
+    rank INT COMMENT '名次',
+    competition_name VARCHAR(200) NOT NULL COMMENT '比赛名称',
+    competition_date DATE NOT NULL COMMENT '比赛日期',
+    record_date DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '记录时间',
+    INDEX idx_member_stroke_distance (member_id, stroke, distance),
+    INDEX idx_competition_date (competition_date)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='成绩历史记录';

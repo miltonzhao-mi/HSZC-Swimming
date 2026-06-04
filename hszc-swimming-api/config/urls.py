@@ -17,6 +17,7 @@ urlpatterns = [
         path('messages/', include('apps.messages.urls')),
         path('notes/', include('apps.notes.urls')),
         path('standards/', include('apps.standards.urls')),
+        path('profiles/', include('apps.profiles.urls')),
     ])),
 
     # API 文档

@@ -37,6 +37,7 @@ INSTALLED_APPS = [
     'apps.messages',
     'apps.notes',
     'apps.standards',
+    'apps.profiles',
 ]
 
 MIDDLEWARE = [
