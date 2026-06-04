@@ -36,6 +36,7 @@ INSTALLED_APPS = [
     'apps.trainings',
     'apps.messages',
     'apps.notes',
+    'apps.standards',
 ]
 
 MIDDLEWARE = [

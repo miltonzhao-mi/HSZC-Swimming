@@ -16,6 +16,7 @@ urlpatterns = [
         path('trainings/', include('apps.trainings.urls')),
         path('messages/', include('apps.messages.urls')),
         path('notes/', include('apps.notes.urls')),
+        path('standards/', include('apps.standards.urls')),
     ])),
 
     # API 文档
